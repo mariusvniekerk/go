@@ -276,6 +276,16 @@ func (ctxt *Context) SrcDirs() []string {
 // if set, or else the compiled code's GOARCH, GOOS, and GOROOT.
 var Default Context = defaultContext()
 
+func defaultCondaGOPATH() string {
+	if envIsOne("CONDA_GO_COMPILER") && envIsOne("CONDA_BUILD") {
+		if srcDir := os.Getenv("SRC_DIR"); srcDir != "" {
+			return filepath.Join(srcDir, "gopath")
+		}
+		return defaultGOPATH()
+	}
+	return defaultGOPATH()
+}
+
 func defaultGOPATH() string {
 	env := "HOME"
 	if runtime.GOOS == "windows" {
@@ -303,7 +313,7 @@ func defaultContext() Context {
 	c.GOARCH = buildcfg.GOARCH
 	c.GOOS = buildcfg.GOOS
 	c.GOROOT = pathpkg.Clean(runtime.GOROOT())
-	c.GOPATH = envOr("GOPATH", defaultGOPATH())
+	c.GOPATH = envOr("GOPATH", defaultCondaGOPATH())
 	c.Compiler = runtime.Compiler
 
 	// For each experiment that has been enabled in the toolchain, define a
@@ -356,6 +366,13 @@ func envOr(name, def string) string {
 		return def
 	}
 	return s
+}
+
+// envIsOne returns true if environment variable is set to 1, it
+// it returns false otherwise
+func envIsOne(name string) bool {
+	s := os.Getenv(name)
+	return s == "1"
 }
 
 // An ImportMode controls the behavior of the Import method.
