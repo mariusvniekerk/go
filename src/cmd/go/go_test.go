@@ -2880,3 +2880,36 @@ func TestMissingCC(t *testing.T) {
 		t.Error(`clearing "PATH" causes "net" to be stale`)
 	}
 }
+
+// Test that without $GOBIN set, binaries get installed
+// into the PREFIX/bin directory when CONDA_BUILD is 1.
+func TestInstallIntoGOBINWithCondaCompiler(t *testing.T) {
+	tg := testgo(t)
+	defer tg.cleanup()
+	tg.setenv("CONDA_GO_COMPILER", "1")
+	tg.setenv("CONDA_BUILD", "")
+	tg.makeTempdir()
+	prefix := filepath.Join(tg.tempdir, "testdata", "conda_prefix")
+	tg.creatingTemp(prefix)
+	tg.setenv("CONDA_PREFIX", prefix)
+	tg.setenv("GOPATH", filepath.Join(tg.pwd(), "testdata", "gopath"))
+	tg.run("install", "go-cmd-test")
+	tg.wantExecutable(filepath.Join(prefix, "bin/go-cmd-test"+exeSuffix), "go install go-cmd-test did not write to testdata/conda_prefix/bin/go-cmd-test")
+}
+
+// Test that without $GOBIN set, binaries get installed
+// into the PREFIX/bin directory when CONDA_BUILD is 1.
+func TestInstallIntoGOBINWithCondaBuild(t *testing.T) {
+	tg := testgo(t)
+	defer tg.cleanup()
+	tg.setenv("CONDA_GO_COMPILER", "1")
+	tg.setenv("CONDA_BUILD", "1")
+	tg.makeTempdir()
+	prefix := filepath.Join(tg.tempdir, "testdata", "conda_build_prefix")
+	tg.creatingTemp(prefix)
+	tg.setenv("PREFIX", prefix)
+	tg.setenv("SRC_DIR", filepath.Join(tg.pwd(), "testdata"))
+	tg.run("install", "go-cmd-test")
+	tg.wantExecutable(filepath.Join(prefix, "bin/go-cmd-test"+exeSuffix), "go install go-cmd-test did not write to testdata/conda_build_prefix/bin/go-cmd-test")
+}
+
