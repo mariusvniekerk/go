@@ -187,6 +187,7 @@ func TestWindowsBuildmodeCSharedASLR(t *testing.T) {
 func testWindowsBuildmodeCSharedASLR(t *testing.T, useASLR bool) {
 	t.Parallel()
 	testenv.MustHaveGoBuild(t)
+	testenv.MustHaveCGO(t)
 
 	dir := t.TempDir()
 
